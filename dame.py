@@ -51,14 +51,14 @@ class Damier(tk.Frame):
 
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
-        self.canvas = tk.Canvas(self, width=606, height=606, bg="blue")
+        self.canvas = tk.Canvas(self, width=800, height=800, bg="blue")
         self.canvas.pack()
         self.creer_plateau()
 
     def creer_plateau(self):
         global tout_les_cases
         TAILLE_GRILLE = 10
-        TAILLE_CASE = 40  # Taille d'une case en pixels
+        TAILLE_CASE = 80  # Taille d'une case en pixels
         tout_les_cases = []
         for row in range(TAILLE_GRILLE):
             for col in range(TAILLE_GRILLE):
