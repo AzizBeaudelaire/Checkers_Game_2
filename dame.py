@@ -1,59 +1,60 @@
 from tkinter import *
 
-import tkinter as tk
+class Case:
+    def __init__(self, master=None, x1=0, y1=0, x2=0, y2=0, couleur_case="", couleurPion="", pion=0):
+        self.master = master
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+        self.couleur_case = couleur_case
+        self.couleurPion = couleurPion
+        self.pion = pion
 
-class Damier(tk.Frame):
-    class Case:
-        def __init__(self, x1, y1, x2, y2, couleurCase, couleurPion, pion):
-            self.x1 = x1
-            self.x2 = x2
-            self.y1 = y1
-            self.y2 = y2
-            self.couleurCase = couleurCase
-            self.couleurPion = couleurPion
-            self.pion = pion
+    def __eq__(self, other):
+        return (
+            self.x1 == other.x1
+            and self.y1 == other.y1
+            and self.x2 == other.x2
+            and self.y2 == other.y2
+        )
 
-        def __eq__(self, other):
-            return (
-                self.x1 == other.x1
-                and self.y1 == other.y1
-                and self.x2 == other.x2
-                and self.y2 == other.y2
+    def getCoordCase(self):
+        return [self.x1, self.y1, self.x2, self.y2]
+
+    def getCoordPion(self):
+        return [self.x1 + 10, self.y1 + 10, self.x2 - 10, self.y2 - 10]
+
+    def setPion(self, val):
+        self.pion = val
+
+    def setCouleurPion(self, val):
+        self.couleurPion = val
+
+    def placerPion(self, canvas):
+        if self.pion:
+            canvas.create_oval(
+                self.x1 + 10,
+                self.y1 + 10,
+                self.x2 - 10,
+                self.y2 - 10,
+                fill=self.couleurPion,
             )
 
-        def getCoordCase(self):
-            return [self.x1, self.y1, self.x2, self.y2]
+    def peutBougerVers(self, dest):
+        # Simplification de la méthode
+        return Mouvement().get_chemin_possible(self)  # Utilisation de la méthode de la classe Mouvement pour obtenir les mouvements possibles
 
-        def getCoordPion(self):
-            return [self.x1 + 10, self.y1 + 10, self.x2 - 10, self.y2 - 10]
-
-        def setPion(self, val):
-            self.pion = val
-
-        def setCouleurPion(self, val):
-            self.couleurPion = val
-
-        def placerPion(self, canvas):
-            if self.pion:
-                canvas.create_oval(
-                    self.x1 + 10,
-                    self.y1 + 10,
-                    self.x2 - 10,
-                    self.y2 - 10,
-                    fill=self.couleurPion,
-                )
-
-        def peutBougerVers(self, dest):
-            # Simplification de la méthode
-            return Mouvement().get_chemin_possible(self)  # Utilisation de la méthode de la classe Mouvement pour obtenir les mouvements possibles
-
-        # Méthodes gauche, droite, haut, bas inchangées
-
+class Damier(Frame):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
-        self.canvas = tk.Canvas(self, width=800, height=800, bg="blue")
+        self.canvas = Canvas(self, width=800, height=800, bg="blue")
         self.canvas.pack()
         self.creer_plateau()
+
+        # Création de l'étiquette pour afficher le score
+        self.score_label = Label(self, text="Player 1 : 0 vs J : 0", bg="#add8e6", padx=10, pady=5)
+        self.score_label.pack(side=TOP, pady=10)
 
     def creer_plateau(self):
         global tout_les_cases
@@ -81,7 +82,8 @@ class Damier(tk.Frame):
                     else:
                         couleurPion = ""
                         pion = 0
-                    case = self.Case(x1, y1, x2, y2, couleur_case, couleurPion, pion)
+                    # Créer une instance de la classe Case
+                    case = Case(master=self, x1=x1, y1=y1, x2=x2, y2=y2, couleur_case=couleur_case, couleurPion=couleurPion, pion=pion)
                     tout_les_cases.append(case)
                     if case.pion:
                         case.placerPion(self.canvas)  # Passer canvas comme argument
@@ -98,9 +100,21 @@ class Damier(tk.Frame):
         self.creer_plateau()
 
 class Mouvement:
-    def __init__(self, canvas, score_label):
+    def __init__(self, canvas, score_label, damier):
         self.canvas = canvas
         self.score_label = score_label
+        self.damier = damier  # Ajout de la référence à l'instance de Damier
+    
+    def set_damier(self, damier_instance):
+        self.damier = damier_instance 
+    
+    def trouverCase(self, coord):
+        """Trouve et retourne la case correspondant aux coordonnées spécifiées."""
+        for case in tout_les_cases:  # Utilisation de la liste globale de toutes les cases du damier
+            if case and case.getCoordCase() == coord:
+                return case
+        return None
+
 
     def click(self, event):
         global caseDepart, pionClicker, session
@@ -185,7 +199,7 @@ class Mouvement:
                 pionSuppprimer = self.canvas.find_overlapping(c[0], c[1], c[2], c[3])
                 self.canvas.delete(pionSuppprimer[1])
                 caseSupprimer.setPion(0)
-               
+
     def get_chemin_possible(self, case_depart):
         chemin_possible = []
         # Vérifiez si la case de départ est valide
@@ -281,7 +295,4 @@ class Mouvement:
                 cases_diagonales.append(droite_haut)
         return cases_diagonales
 
-# Initialisation des variables
-tout_les_cases = []
-scoreJ, scoreV = 0, 0
-caseDest = 0
+
