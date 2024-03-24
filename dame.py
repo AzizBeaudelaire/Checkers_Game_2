@@ -1,283 +1,287 @@
 from tkinter import *
 
+import tkinter as tk
 
-class Case:
-    def __init__(self, x1, y1, x2, y2, couleurCase, couleurPion, pion):
-        self.x1 = x1
-        self.x2 = x2
-        self.y1 = y1
-        self.y2 = y2
-        self.couleurCase = couleurCase
-        self.couleurPion = couleurPion
-        self.pion = pion
+class Damier(tk.Frame):
+    class Case:
+        def __init__(self, x1, y1, x2, y2, couleurCase, couleurPion, pion):
+            self.x1 = x1
+            self.x2 = x2
+            self.y1 = y1
+            self.y2 = y2
+            self.couleurCase = couleurCase
+            self.couleurPion = couleurPion
+            self.pion = pion
 
-    def __eq__(self, other):
-        return (
-            self.x1 == other.x1
-            and self.y1 == other.y1
-            and self.x2 == other.x2
-            and self.y2 == other.y2
-        )
-
-    def getCoordCase(self):
-        return [self.x1, self.y1, self.x2, self.y2]
-
-    def getCoordPion(self):
-        return [self.x1 + 10, self.y1 + 10, self.x2 - 10, self.y2 - 10]
-
-    def setPion(self, val):
-        self.pion = val
-
-    def setCouleurPion(self, val):
-        self.couleurPion = val
-
-    def creeCase(self):
-        can.create_rectangle(self.x1, self.y1, self.x2, self.y2, fill=self.couleurCase)
-
-    def placerPion(self):
-        if self.pion:
-            can.create_oval(
-                self.x1 + 10,
-                self.y1 + 10,
-                self.x2 - 10,
-                self.y2 - 10,
-                fill=self.couleurPion,
+        def __eq__(self, other):
+            return (
+                self.x1 == other.x1
+                and self.y1 == other.y1
+                and self.x2 == other.x2
+                and self.y2 == other.y2
             )
 
-    def peutBougerVers(self, dest):
-        caseDest = trouverCase(dest)
-        if not caseDest:
-            return False
-        else:
-            if (
-                caseDest.pion
-                or (
-                    not caseDest.__eq__(self.gauche())
-                    and not caseDest.__eq__(self.gauche().gauche())
-                    and not caseDest.__eq__(self.droite())
-                    and not caseDest.__eq__(self.droite().droite())
-                    and not caseDest.__eq__(self.haut())
-                    and not caseDest.__eq__(self.haut().haut())
-                    and not caseDest.__eq__(self.bas())
-                    and not caseDest.__eq__(self.bas().bas())
+        def getCoordCase(self):
+            return [self.x1, self.y1, self.x2, self.y2]
+
+        def getCoordPion(self):
+            return [self.x1 + 10, self.y1 + 10, self.x2 - 10, self.y2 - 10]
+
+        def setPion(self, val):
+            self.pion = val
+
+        def setCouleurPion(self, val):
+            self.couleurPion = val
+
+        def placerPion(self, canvas):
+            if self.pion:
+                canvas.create_oval(
+                    self.x1 + 10,
+                    self.y1 + 10,
+                    self.x2 - 10,
+                    self.y2 - 10,
+                    fill=self.couleurPion,
                 )
-                or (
-                    caseDest.__eq__(self.gauche().gauche())
-                    and (
-                        not self.gauche().pion
-                        or self.gauche().couleurPion == self.couleurPion
-                    )
-                )
-                or (
-                    caseDest.__eq__(self.droite().droite())
-                    and (
-                        not self.droite().pion
-                        or self.droite().couleurPion == self.couleurPion
-                    )
-                )
-                or (
-                    caseDest.__eq__(self.haut().haut())
-                    and (
-                        not self.haut().pion
-                        or self.haut().couleurPion == self.couleurPion
-                    )
-                )
-                or (
-                    caseDest.__eq__(self.bas().bas())
-                    and (
-                        not self.bas().pion
-                        or self.bas().couleurPion == self.couleurPion
-                    )
-                )
-            ):
-                return False
-        return True
 
-    def gauche(self):
+        def peutBougerVers(self, dest):
+            # Simplification de la méthode
+            return Mouvement().get_chemin_possible(self)  # Utilisation de la méthode de la classe Mouvement pour obtenir les mouvements possibles
+
+        # Méthodes gauche, droite, haut, bas inchangées
+
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, **kwargs)
+        self.canvas = tk.Canvas(self, width=606, height=606, bg="blue")
+        self.canvas.pack()
+        self.creer_plateau()
+
+    def creer_plateau(self):
+        global tout_les_cases
+        TAILLE_GRILLE = 10
+        TAILLE_CASE = 40  # Taille d'une case en pixels
+        tout_les_cases = []
+        for row in range(TAILLE_GRILLE):
+            for col in range(TAILLE_GRILLE):
+                if (row + col) % 2 == 0:
+                    couleur_case = "black"
+                else:
+                    couleur_case = "white"
+                x1 = col * TAILLE_CASE
+                y1 = row * TAILLE_CASE
+                x2 = x1 + TAILLE_CASE
+                y2 = y1 + TAILLE_CASE
+                self.canvas.create_rectangle(x1, y1, x2, y2, fill=couleur_case)
+                if (row + col) % 2 == 0:  # Placer les pions sur les cases noires
+                    if row < 4:
+                        couleurPion = "#9feb87"
+                        pion = 1
+                    elif row > 5:
+                        couleurPion = "#ffde01"
+                        pion = 2
+                    else:
+                        couleurPion = ""
+                        pion = 0
+                    case = self.Case(x1, y1, x2, y2, couleur_case, couleurPion, pion)
+                    tout_les_cases.append(case)
+                    if case.pion:
+                        case.placerPion(self.canvas)  # Passer canvas comme argument
+
+    def creeCase(self, x1, y1, x2, y2, couleurCase):
+        self.canvas.create_rectangle(x1, y1, x2, y2, fill=couleurCase)
+
+    def reset(self):
+        # Réinitialiser le damier en remettant tous les pions à leurs positions initiales
         for case in tout_les_cases:
-            if (
-                case.x1 == self.x1 - 40
-                and case.x2 == self.x2 - 40
-                and case.y1 == self.y1
-            ):
-                return case
-        return caseNeutre
+            if case.pion == 1:
+                case.setPion(0)
+                case.setCouleurPion("")
+        self.creer_plateau()
 
-    def droite(self):
-        for case in tout_les_cases:
-            if (
-                case.x1 == self.x1 + 40
-                and case.x2 == self.x2 + 40
-                and case.y1 == self.y1
-            ):
-                return case
-        return caseNeutre
+class Mouvement:
+    def __init__(self, canvas, score_label):
+        self.canvas = canvas
+        self.score_label = score_label
 
-    def haut(self):
-        for case in tout_les_cases:
-            if (
-                case.y1 == self.y1 - 40
-                and case.y2 == self.y2 - 40
-                and case.x1 == self.x1
-            ):
-                return case
-        return caseNeutre
-
-    def bas(self):
-        for case in tout_les_cases:
-            if (
-                case.y1 == self.y1 + 40
-                and case.y2 == self.y2 + 40
-                and case.x1 == self.x1
-            ):
-                return case
-        return caseNeutre
-
-
-def dam():
-    global x1, y1, x2, y2, score, bouttonDam, tout_les_cases
-    ite, i, couleurCase = 0, 1, "#f07ab7"
-    tout_les_cases = []
-    while x1 < 200 and y1 < 200:
-        if i <= 12:
-            couleurPion = "#9feb87"
-            tout_les_cases.append(Case(x1, y1, x2, y2, couleurCase, couleurPion, 1))
-        elif i > 13:
-            couleurPion = "#ffde01"
-            tout_les_cases.append(Case(x1, y1, x2, y2, couleurCase, couleurPion, 1))
-        else:
-            tout_les_cases.append(Case(x1, y1, x2, y2, couleurCase, "", 0))
-
-        tout_les_cases[-1].creeCase()
-        i, ite, x1, x2 = i + 1, ite + 1, x1 + 40, x2 + 40
-
-        if ite == 5:
-            y1, y2 = y1 + 40, y2 + 40
-            ite, x1, x2 = 0, 5, 45
-        if i % 2 == 0:
-            couleurCase = "white"
-        else:
-            couleurCase = "#f07ab7"
-    for case in tout_les_cases:
-
-        case.placerPion()
-    bouttonDam.destroy()
-    score.pack()
-
-
-def trouverCase(coord):
-    if coord:  # Vérifie si coord n'est pas une liste vide
-        for case in tout_les_cases:
-            if (
-                case.x1 == coord[0]
-                and case.y1 == coord[1]
-                and case.x2 == coord[2]
-                and case.y2 == coord[3]
-            ):
-                return case
-    return None
-
-
-def click(event):
-    global caseDepart, pionClicker, session
-    x, y = event.x, event.y
-    pionClicker = 0
-    caseDepart = 0
-    clicker = can.find_overlapping(x, y, x, y)
-    if len(clicker) > 1:
-        coord = can.coords(clicker[0])
-        caseDepart = trouverCase(coord)
-        print(caseDepart)
-        if caseDepart and caseDepart.couleurPion == session:
-            pionClicker = 0
-        else:
-            pionClicker = clicker[1]
-
-
-def bouger(event):
-    global caseDepart, pionClicker
-    x, y = event.x, event.y
-    if caseDepart and pionClicker:
-        coord = can.coords(pionClicker)
-        deplacement = [[x - 10, y - 10, x + 10, y + 10]]
-        can.coords(pionClicker, deplacement[0])
-
-
-def arret(event):
-    global caseDepart, pionClicker, scoreV, scoreJ, session
-    x, y = event.x, event.y
-    collision = can.find_overlapping(x - 10, y - 10, x + 10, y + 10)
-    coord = can.coords(collision[0])
-    # Vérifie si caseDepart et caseDest sont des instances de la classe Case
-    if not caseDepart.peutBougerVers(coord):
-        can.coords(pionClicker, caseDepart.getCoordPion())
-    else:
-        caseDest = trouverCase(coord)
-        if not caseDepart.__eq__(caseDest):
-            session = caseDepart.couleurPion
-        caseDest.setPion(1)
-        caseDest.setCouleurPion(caseDepart.couleurPion)
-        can.coords(pionClicker, caseDest.getCoordPion())
-        caseDepart.setPion(0)
-        caseDest.setCouleurPion("")
-
-        caseSupprimer = 0
-        if caseDest.__eq__(caseDepart.gauche().gauche()):
-            caseSupprimer = caseDepart.gauche()
-        elif caseDest.__eq__(caseDepart.droite().droite()):
-            caseSupprimer = caseDepart.droite()
-        elif caseDest.__eq__(caseDepart.haut().haut()):
-            caseSupprimer = caseDepart.haut()
-        elif caseDest.__eq__(caseDepart.bas().bas()):
-            caseSupprimer = caseDepart.bas()
-
-        if caseSupprimer:
-            if caseSupprimer.couleurPion == "#9feb87":
-                scoreJ += 1
+    def click(self, event):
+        global caseDepart, pionClicker, session
+        x, y = event.x, event.y
+        pionClicker = 0
+        caseDepart = 0
+        clicker = self.canvas.find_overlapping(x, y, x, y)
+        if len(clicker) > 1:
+            coord = self.canvas.coords(clicker[0])
+            caseDepart = self.trouverCase(coord)  # Assurez-vous que trouverCase est une méthode de votre classe
+            if caseDepart and caseDepart.couleurPion == session:
+                pionClicker = 0
             else:
-                scoreV += 1
-            score.configure(text="V : {} vs J : {}".format(scoreV, scoreJ))
+                pionClicker = clicker[1]
+        # Affiche le chemin possible lors du clic
+        chemin_possible = self.get_chemin_possible(caseDepart)
+        for case in chemin_possible:
+            self.canvas.create_rectangle(
+                case.getCoordCase(), outline="green", width=2, dash=(4, 4)
+            )
 
-            if scoreJ >= 12:
-                score.configure(text="Victoire de J : {}".format(scoreJ))
-            elif scoreV >= 12:
-                score.configure(text="Victoire de V : {}".format(scoreV))
-            c = caseSupprimer.getCoordPion()
-            pionSuppprimer = can.find_overlapping(c[0], c[1], c[2], c[3])
-            can.delete(pionSuppprimer[1])
-            caseSupprimer.setPion(0)
-            caseSupprimer.setCouleurPion("")
+    def click_choice(self, event):
+        global caseDepart, pionClicker
+        x, y = event.x, event.y
+        if caseDepart and pionClicker:
+            coord = self.canvas.coords(pionClicker)
+            cases_diagonales = self.get_cases_diagonales_libres(caseDepart)
+            for case in cases_diagonales:
+                if case.getCoordCase() == [x, y, x, y]:
+                    self.deplacer_pion(case)
+                    self.manger_pion(caseDepart, case)
+                    break
 
+    def bouger(self, event):
+        global caseDepart, pionClicker
+        x, y = event.x, event.y
+        if caseDepart and pionClicker:
+            coord = self.canvas.coords(pionClicker)
+            deplacement = [[x - 10, y - 10, x + 10, y + 10]]
+            self.canvas.coords(pionClicker, deplacement[0])
+
+    def arret(self, event):
+        global caseDepart, pionClicker, session
+        global scoreV, scoreJ
+        x, y = event.x, event.y
+        collision = self.canvas.find_overlapping(x - 10, y - 10, x + 10, y + 10)
+        coord = self.canvas.coords(collision[0])
+        caseSupprimer = None
+        if not caseDepart.peutBougerVers(coord):  # Assurez-vous que peutBougerVers est une méthode de votre classe
+            self.canvas.coords(pionClicker, caseDepart.getCoordPion())
+        else:
+            caseDest = self.trouverCase(coord)  # Assurez-vous que trouverCase est une méthode de votre classe
+            if not caseDepart.__eq__(caseDest):
+                session = caseDepart.couleurPion
+            caseDest.setPion(1)
+            caseDest.setCouleurPion(caseDepart.couleurPion)
+            self.canvas.coords(pionClicker, caseDest.getCoordPion())
+            caseDepart.setPion(0)
+            caseDest.setCouleurPion("")
+
+            if caseDest.__eq__(caseDepart.gauche().gauche()):
+                caseSupprimer = caseDepart.gauche()
+            elif caseDest.__eq__(caseDepart.droite().droite()):
+                caseSupprimer = caseDepart.droite()
+            elif caseDest.__eq__(caseDepart.haut().haut()):
+                caseSupprimer = caseDepart.haut()
+            elif caseDest.__eq__(caseDepart.bas().bas()):
+                caseSupprimer = caseDepart.bas()
+
+            if caseSupprimer:
+                if caseSupprimer.couleurPion == "#9feb87":
+                    scoreJ += 1
+                else:
+                    scoreV += 1
+                self.score_label.configure(text="V : {} vs J : {}".format(scoreV, scoreJ))
+
+                if scoreJ >= 12:
+                    self.score_label.configure(text="Victoire de J : {}".format(scoreJ))
+                elif scoreV >= 12:
+                    self.score_label.configure(text="Victoire de V : {}".format(scoreV))
+                c = caseSupprimer.getCoordPion()
+                pionSuppprimer = self.canvas.find_overlapping(c[0], c[1], c[2], c[3])
+                self.canvas.delete(pionSuppprimer[1])
+                caseSupprimer.setPion(0)
+               
+    def get_chemin_possible(self, case_depart):
+        chemin_possible = []
+        # Vérifiez si la case de départ est valide
+        if case_depart:
+            # Obtenez les coordonnées de la case de départ
+            x, y = case_depart.getCoordPion()[0], case_depart.getCoordPion()[1]
+            # Obtenez les cases diagonales possibles
+            cases_diagonales = [case_depart.gauche().haut(), case_depart.droite().haut()]
+            # Ajoutez les cases diagonales possibles à la liste du chemin possible
+            for case_diagonale in cases_diagonales:
+                if case_diagonale and self.is_case_vide(case_diagonale):
+                    chemin_possible.append(case_diagonale)
+        return chemin_possible
+
+    def deplacer_pion(self, case_dest):
+        """Déplace le pion vers la case de destination."""
+        global caseDepart, pionClicker
+        if caseDepart and pionClicker and case_dest:
+            # Déplacez le pion vers la case de destination
+            coord = case_dest.getCoordPion()
+            self.canvas.coords(pionClicker, coord)
+            # Mettez à jour les attributs de caseDepart et pionClicker
+            caseDepart.setPion(0)
+            caseDepart.setCouleurPion("")
+            case_dest.setPion(1)
+            case_dest.setCouleurPion(caseDepart.couleurPion)
+            caseDepart = None
+            pionClicker = None
+
+    def manger_pion(self, case_depart, case_dest):
+        """Vérifie et effectue si possible la capture d'un pion adverse."""
+        global caseDepart, pionClicker, session, scoreV, scoreJ
+        if case_depart and case_dest:
+            # Vérifiez si le déplacement est valide pour la capture
+            if self.is_case_adverse(case_dest):
+                # Effectuez le déplacement et retirez le pion adverse du damier
+                coord = case_dest.getCoordPion()
+                self.canvas.coords(pionClicker, coord)
+                caseDepart.setPion(0)
+                caseDepart.setCouleurPion("")
+                case_dest.setPion(1)
+                case_dest.setCouleurPion(caseDepart.couleurPion)
+                # Mettez à jour les scores
+                if case_dest.couleurPion == "#9feb87":
+                    scoreJ += 1
+                else:
+                    scoreV += 1
+                self.score_label.configure(text="V : {} vs J : {}".format(scoreV, scoreJ))
+                # Vérifiez s'il y a une victoire
+                if scoreJ >= 12:
+                    self.score_label.configure(text="Victoire de J : {}".format(scoreJ))
+                elif scoreV >= 12:
+                    self.score_label.configure(text="Victoire de V : {}".format(scoreV))
+                # Supprimez le pion adverse
+                c = case_dest.getCoordPion()
+                pionSuppprimer = self.canvas.find_overlapping(c[0], c[1], c[2], c[3])
+                self.canvas.delete(pionSuppprimer[1])
+                case_dest.setPion(0)
+                case_dest.setCouleurPion("")
+
+    def is_case_valide(self, coord):
+        """Vérifie si les coordonnées spécifiées représentent une case valide sur le damier."""
+        # Vérifiez si les coordonnées sont à l'intérieur du damier
+        return 0 < coord[0] < 600 and 0 < coord[1] < 600
+
+    def is_case_vide(self, case):
+        """Vérifie si la case spécifiée est vide."""
+        return case and case.pion == 0
+
+    def is_case_adverse(self, case):
+        """Vérifie si la case spécifiée contient un pion adverse."""
+        return case and case.pion == 1 and case.couleurPion != session
+
+    def is_case_blanche(self, case):
+        """Vérifie si la case spécifiée contient un pion du joueur blanc."""
+        return case and case.pion == 1 and case.couleurPion == "#ffde01"
+
+    def is_case_noire(self, case):
+        """Vérifie si la case spécifiée contient un pion du joueur noir."""
+        return case and case.pion == 1 and case.couleurPion == "#9feb87"
+
+    def get_cases_diagonales_libres(self, case):
+        """Retourne une liste des cases diagonales adjacentes à la case spécifiée qui sont vides."""
+        cases_diagonales = []
+        if case:
+            # Obtenez les cases diagonales adjacentes
+            gauche_haut = case.gauche().haut()
+            droite_haut = case.droite().haut()
+            # Vérifiez si les cases diagonales sont vides
+            if self.is_case_vide(gauche_haut):
+                cases_diagonales.append(gauche_haut)
+            if self.is_case_vide(droite_haut):
+                cases_diagonales.append(droite_haut)
+        return cases_diagonales
 
 # Initialisation des variables
-x1, y1, x2, y2 = 5, 5, 45, 45
 tout_les_cases = []
-session = "#9feb87"  # Couleur de la session en cours
-session = ""
 scoreJ, scoreV = 0, 0
-caseNeutre = Case(0, 0, 0, 0, "", "", 0)
 caseDest = 0
-
-fen = Tk()
-fen.title("Jeu de Dame")
-fen.geometry("260x245+450+250")
-fen.configure(bg="white")
-
-can = Canvas(fen, width=206, height=206, bg="pink")
-
-font = "arial 13 bold"
-bouttonDam = Button(
-    fen, text="Commencer", font=font, command=dam, fg="white", bg="#000ab7"
-)
-score = Label(fen, text="V : 0 vs J : 0", font=font, fg="white", bg="#f00ab7")
-
-can.pack()
-bouttonDam.pack()
-
-can.bind("<Button-1>", click)
-can.bind("<B1-Motion>", bouger)
-can.bind("<ButtonRelease-1>", arret)
-can.configure(cursor="hand2")
-
-fen.resizable(False, False)
-fen.mainloop()
